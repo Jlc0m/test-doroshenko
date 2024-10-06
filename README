@@ -1,0 +1,5 @@
+step 1: composer install
+
+step 2: docker-compose up -d
+
+step 3: test user: test@example.com, password: test1234

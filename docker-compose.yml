@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      dockerfile: _docker/Dockerfile
+    container_name: php-apache-${PROJECT_NAME}
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www/html
+      - ./_docker/apache-config:/etc/apache2/sites-available
+      - ./_docker/php.ini:/usr/local/etc/php/php.ini
+      - ./sessions:/var/lib/php/sessions
+    env_file:
+      - .env 
+    environment:
+      VIRTUAL_HOST: ${VIRTUAL_HOST}
+      PHP_SESSION_SAVE_PATH: /var/lib/php/sessions
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8
+    container_name: mysql-${PROJECT_NAME}
+    ports:
+      - "3306:3306"
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - ./tmp/mysql:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin-${PROJECT_NAME}
+    ports:
+      - 9090:80
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+      - UPLOAD_LIMIT=256M
+    depends_on:
+      - db
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog-${PROJECT_NAME}
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
+volumes:
+  db_data:
