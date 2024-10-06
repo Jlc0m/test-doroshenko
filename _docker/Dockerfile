@@ -28,6 +28,9 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
 # copy apache-config
 COPY _docker/apache-config/000-default.conf.template /etc/apache2/sites-available/000-default.conf.template
 
+# Install composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
 # copy php-config
 COPY _docker/php.ini /usr/local/etc/php/php.ini
 
