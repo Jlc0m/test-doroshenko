@@ -1,5 +1,9 @@
-step 1: composer install
+step 1: docker-compose up -d
 
-step 2: docker-compose up -d
+step 2: docker exec -it php-apache-test_doroshenko bash
 
-step 3: test user: test@example.com, password: test1234
+step 3: composer i
+
+step 4: http://localhost:80
+
+step 5: test user: test@example.com, password: test1234
