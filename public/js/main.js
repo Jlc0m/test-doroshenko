@@ -49,21 +49,30 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     deleteSelected.addEventListener('click', function() {
-        if (confirm('Ви впевнені, що хочете видалити вибрані файли?')) {
+        if (confirm('Are you sure you want to delete the selected files?')) {
             const selectedFiles = document.querySelectorAll('.file-select:checked');
-            selectedFiles.forEach(checkbox => {
+            const deletePromises = Array.from(selectedFiles).map(checkbox => {
                 const fileId = checkbox.value;
-                fetch(`/delete-file/${fileId}`, { method: 'POST' })
+                const fileCard = checkbox.closest('.col-md-6');
+                return fetch(`/delete-file/${fileId}`, { method: 'POST' })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            checkbox.closest('.col-md-4').remove();
+                            fileCard.remove();
                         } else {
-                            alert(`Error deleting file: ${data.error}`);
+                            throw new Error(`Error deleting file: ${data.error}`);
                         }
-                    })
-                    .catch(error => console.error('Error:', error));
+                    });
             });
+
+            Promise.all(deletePromises)
+                .then(() => {
+                    updateButtonState();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while deleting some files');
+                });
         }
     });
 
@@ -99,12 +108,14 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.delete-file').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
+            const fileCard = this.closest('.col-md-6');
             if (confirm('Are you sure you want to delete this file?')) {
                 fetch(this.href, { method: 'POST' })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            this.closest('.col-md-4').remove();
+                            fileCard.remove();
+                            updateButtonState();
                         } else {
                             alert(`Error deleting file: ${data.error}`);
                         }
@@ -186,11 +197,11 @@ function fallbackCopyTextToClipboard(button) {
 
     try {
         const successful = document.execCommand('copy');
-        const msg = successful ? 'success' : 'failed';
-        alert('Link ' + msg + ' copied to clipboard: ' + text);
+        const msg = successful ? 'successfully' : 'failed to be';
+        alert(`Link ${msg} copied to clipboard: ${text}`);
     } catch (err) {
         console.error('Failed to copy the link: ', err);
-        alert('Failed to copy the link. Please copy it manually: ' + text);
+        alert(`Failed to copy the link. Please copy it manually: ${text}`);
     }
 
     document.body.removeChild(textArea);
